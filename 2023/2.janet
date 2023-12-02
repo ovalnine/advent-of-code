@@ -21,19 +21,18 @@
     (<= (v :g) (c :g))
     (<= (v :b) (c :b))))
 
+(defn
+  put-max
+  [t [v k]]
+  (put t k (max (t k) v)))
+
 (var s1 0)
 (var s2 0)
 (loop [game :in input]
   (def g (peg/match game-grammar game))
   (def no (first g))
   (def rounds (last g))
-  (def minimum (reduce
-                (fn [acc el]
-                  (def k (last el))
-                  (def v (first el))
-                  (set (acc k) (max (acc k) v))
-                  acc)
-                @{:r 0 :g 0 :b 0} rounds))
+  (def minimum (reduce put-max @{:r 0 :g 0 :b 0} rounds))
   (def power (* (minimum :r) (minimum :g) (minimum :b)))
   (+= s1 (if (check-constraint constraint minimum) no 0))
   (+= s2 power))

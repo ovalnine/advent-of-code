@@ -5,7 +5,7 @@
 (def constraint {:r 12 :g 13 :b 14})
 
 (def game-grammar
-  ~{:to-number (/ (<- :d*) ,scan-number)
+  ~{:to-number (/ (<- :d+) ,scan-number)
     :game-no (* "Game " :to-number ":")
     :round-end (any (+ "," ";"))
     :rd (group (* " " :to-number (/ " red" :r) :round-end))

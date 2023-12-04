@@ -11,24 +11,16 @@
 
 (var s 0)
 (loop [line :in input]
-  (def card (peg/match card-grammar line))
-
-  (var shift -1)
-  (loop [no :in (card 1)]
-    (if (has-value? (card 2) no) (+= shift 1)))
-  (def pts (if (not= shift -1) (blshift 1 shift) 0))
-  (+= s pts))
+  (def [no ww ss] (peg/match card-grammar line))
+  (def c (count |(has-value? ss $) ww))
+  (+= s (if (not (zero? c)) (blshift 1 (- c 1)) 0)))
 (pp s)
 
 # Part 2
-(def c (array/new-filled (length input) 0))
-(loop [[i line] :pairs (reverse input)]
-  (var wins 0)
-  (def card (peg/match card-grammar line))
-  (each no (card 1) (if (has-value? (card 2) no) (+= wins 1)))
-  (var total 1)
-  (loop [j :range [1 (inc wins)]]
-    (+= total (c (- i j))))
-  (put c i total))
+(def cards (array/new-filled (length input) 0))
+(loop [[i l] :pairs (reverse input)]
+  (def [no ww ss] (peg/match card-grammar l))
+  (def c (count |(has-value? ss $) ww))
+  (put cards i (+ 1 ;(array/slice cards (- i c) i))))
 
-(pp (+ ;c))
+(pp (+ ;cards))

@@ -2,30 +2,39 @@
 (def input (string/trimr input))
 
 (def grammar
-  ~{:number (/ (<- :d+) ,scan-number)
-    :seeds (group (* "seeds:" (repeat 20 (* " " :number)) :empty))
-    :maps (some (group (* :number " " :number " " :number "\n")))
-    :empty (* "\n\n")
-    :soil-map (group (* "seed-to-soil map:\n" :maps 1))
-    :fert-map (group (* "soil-to-fertilizer map:\n" :maps 1))
-    :watr-map (group (* "fertilizer-to-water map:\n" :maps 1))
-    :ligt-map (group (* "water-to-light map:\n" :maps 1))
-    :temp-map (group (* "light-to-temperature map:\n" :maps 1))
-    :humi-map (group (* "temperature-to-humidity map:\n" :maps 1))
-    :loct-map (group (* "humidity-to-location map:\n" :maps 1))
-    :main (* :seeds (* :soil-map :fert-map :watr-map :ligt-map :temp-map :humi-map :loct-map 1))})
+  ~{:maps (some (* :map (any "\n")))
+    :mapping (/ (* (number :d+) :s+ (number :d+) :s+ (number :d+)) ,|{:dest $0 :src $1 :len $2})
+    :map (* (thru "map:\n") (group (some (* :mapping "\n"))) :s*)
+    # Part 1
+    :seeds-1 (* "seeds: " (group (some (/ (* (number :d+) (constant 1) :s*) ,|{:start $0 :length $1}))))
+    # Part 2
+    :seeds-2 (* "seeds: " (group (some (/ (* (number :d+) :s+ (number :d+) :s*) ,|{:start $0 :length $1}))))
+    :main (/ (* :seeds-1 :maps) ,|{:seeds $0 :maps $&})
+    })
 
-(def input (peg/match grammar input))
 
-(defn
-  convert
-  [x tab]
-  (def m (find (fn [[dest src rng]] (and (>= x src) (< x (+ src rng)))) tab))
-  (if m (+ (- x (m 1)) (m 0)) x))
+(def {:seeds seeds :maps maps} ((peg/match grammar input) 0))
+
+# Sort map ranges by source
+(each m maps (sort-by |($ :src) m))
+
+(defn in-range [v r] (and (>= v 0) (< v r)))
 
 (defn
-  convert-all
-  [x tabs]
-  (reduce (fn [y tab] (convert y tab)) x tabs))
+  transform
+  [input mappings]
+  (catseq [{:start start :length seed-len} :in input]
+          (var start start)
+          (var seed-len seed-len)
+          (def mapped
+            (seq [{:dest dest :src src :len map-len} :in mappings
+                  :let [delta (- start src)]
+                  :when (in-range delta map-len)]
+              (def len (min (- map-len delta) seed-len))
+              (+= start len)
+              (-= seed-len len)
+              @{:start (+ dest delta) :length len}))
+          (when (empty? mapped) (array/push mapped @{:start start :length seed-len}))
+          mapped))
 
-(pp (min ;(map |(convert-all $ (array/slice input 1 -1)) (input 0))))
+(pp (min ;(map |($ :start) (reduce transform seeds maps))))

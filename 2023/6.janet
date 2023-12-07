@@ -2,13 +2,18 @@
 (def input (string/trimr input))
 
 (def grammar
-  ~{:time (* "Time:" (group (repeat 4 (* :s+ (number :d+)))) :s*)
-    :dist (* "Distance:" (group (repeat 4 (* :s+ (number :d+)))) :s*)
+  ~{:time (* "Time:" (group (repeat 4 (* :s+ (<- :d+)))) :s*)
+    :dist (* "Distance:" (group (repeat 4 (* :s+ (<- :d+)))) :s*)
     :main (* :time :dist)})
 
 (def [times distances] (peg/match grammar input))
 
-(defn distance [hold-time duration] (* (- duration hold-time) hold-time))
+# Part 1
+
+(defn
+  distance
+  [hold-time duration]
+  (* (- duration hold-time) hold-time))
 
 (defn
   winning
@@ -18,17 +23,25 @@
        (filter |(> $ dist))
        (length)))
 
-(defn
-  array-number
-  [arr]
-  (->> (map string arr)
-       (string/join)
-       (scan-number)))
-
-(defn zip [a b] (seq [i :keys a] @[(a i) (b i)]))
-
-# Part 1
-(pp (reduce |(* $0 (winning ;$1)) 1 (zip times distances)))
+(pp (->> (map |@[(scan-number $0) (scan-number $1)] times distances)
+         (reduce |(* $0 (winning ;$1)) 1)))
 
 # Part 2
-(pp (winning (array-number times) (array-number distances)))
+
+(defn
+  quadratic-solver
+  (a b c)
+  (def root (math/sqrt (+ (* b b) (- (* 4 a c)))))
+  (def two-a (* 2 a))
+  (def lo (/ (+ (- b) root) two-a))
+  (def hi (/ (- (- b) root) two-a))
+  [lo hi])
+
+(def a -1)
+(def b (scan-number (string/join times)))
+(def c (scan-number (string/join distances)))
+
+(def [lo hi] (quadratic-solver a b (- c)))
+
+(pp (math/ceil (- hi lo)))
+

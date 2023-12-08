@@ -1,34 +1,16 @@
 (def input (slurp "inputs/7.txt"))
 
-(def test-input ```
-32T3K 765
-T55J5 684
-KK677 28
-KTJJT 220
-QQQJA 483
-
-```)
-
 (def grammar
   ~{:cards (group (repeat 5 (<- :w)))
     :main (some (/ (* :cards :s (number :d+) :s)  ,|@{:hand $0 :bet $1 :freq (frequencies $0)}))})
 
 (def cards (peg/match grammar input))
 
-(def card-value
-  {"A" 14
-   "K" 13
-   "Q" 12
-   "J" 11
-   "T" 10
-   "9" 9
-   "8" 8
-   "7" 7
-   "6" 6
-   "5" 5
-   "4" 4
-   "3" 3
-   "2" 2})
+(def card-value @{"A" 14 "K" 13 "Q" 12 "J" 11 "T" 10
+                  "9" 9  "8" 8  "7" 7  "6" 6  "5" 5
+                  "4" 4  "3" 3  "2" 2})
+
+(set (card-value "J") 1)
 
 (defn 
   card-rank
@@ -49,16 +31,25 @@ QQQJA 483
 
 (sort cards card-rank)
 
-(def test-card @{"2" 2 "J" 1 "3" 2 "4" 4})
+(pp (sum (map (fn [[i {:bet bet}]] (* (inc i) bet)) (pairs cards))))
 
-(pp (sort test-card))
-(pp (first test-card))
+(def cards (peg/match grammar input))
 
-(var s 0)
-(loop [[i card] :pairs cards]
-  (+= s (* (card :bet) (+ i 1))))
+(defn
+  max-pair
+  [x]
+  (->> (pairs x)
+       (filter |(not= (first $) "J"))
+       (sort-by |(last $))
+       (last)))
 
-(pp s)
+(loop [card :in cards]
+  (def freq (card :freq))
+  (def max-p (max-pair freq))
+  (when (and max-p (has-key? freq "J"))
+    (+= (freq (first max-p)) (freq "J"))
+    (put freq "J" nil)))
 
+(sort cards card-rank)
 
-
+(pp (sum (map (fn [[i {:bet bet}]] (* (inc i) bet)) (pairs cards))))

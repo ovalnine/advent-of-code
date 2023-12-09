@@ -5,47 +5,34 @@
     :node (* (<- :w+) " = (" (<- :w+) ", " (<- :w+) ")" :s)
     :network (/ (group (some (/ :node ,|@{$0 (tuple $1 $2)}))) ,|(merge ;$))
     :main (* :paths :s+ :network)})
-    # :main (* :direction :s :network)})
 
-(def test-input ```
-LR
+(def [paths network] (peg/match grammar input))
 
-11A = (11B, XXX)
-11B = (XXX, 11Z)
-11Z = (11B, XXX)
-22A = (22B, XXX)
-22B = (22C, 22C)
-22C = (22Z, 22Z)
-22Z = (22B, 22B)
-XXX = (XXX, XXX)
+(defn
+  distance
+  [start condition]
+  (var key start)
+  (var node (network key))
+  (var c 0)
+  (while (not (condition key)) 
+    (loop [path :in paths
+           :until (condition key)]
+      (+= c 1)
+      (set key (node path))
+      (set node (network key))))
+  c)
 
-```)
+# Part 1
 
-(def [paths network] (peg/match grammar test-input))
+(pp (distance "AAA" (fn [x] (= x "ZZZ"))))
 
-# (var key "AAA")
-# (var node (network key))
-# (var c 0)
-# (while (not= key "ZZZ")
-#   (loop [path :in paths
-#          :until (= key "ZZZ")]
-#     (+= c 1)
-#     (set key (node path))
-#     (set node (network key))))
-# (pp c)
+# Part 2
 
-(var key (filter |(= (last $) 65) (keys network)))
-(var node (map network (filter |(= (last $) 65) (keys network))))
-(var c 0)
-(while (some |(not= (last $) 90) key)
-  (loop [path :in paths
-         :until (all |(= (last $) 90) key)]
-    (+= c 1)
-    (set key (map |($ path) node))
-    (set node (map network key))
-    (pp key)
-    (pp node)))
+# This part is solved this way
+# given the property that each
+# path from intial XXA -> XXZ
+# is cyclical.
 
-(pp c)
-# (pp key)
-# (pp node)
+(pp (->> (filter |(= (last $) 65) (keys network))
+         (map |(distance $ (fn [x] (= (last x) 90))))
+         (reduce math/lcm 1 )))

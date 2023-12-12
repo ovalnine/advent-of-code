@@ -1,19 +1,5 @@
 (def input (slurp "inputs/10.txt"))
 
-(def test-input ```
-.F----7F7F7F7F-7....
-.|F--7||||||||FJ....
-.||.FJ||||||||L7....
-FJL7L7LJLJ||LJ.L-7..
-L--J.L7...LJS7F-7L7.
-....F-J..F7FJ|L7L7L7
-....L7.F7||L7|.L7L7|
-.....|FJLJ|FJ|F7|.LJ
-....FJL-7.||.||||...
-....L---J.LJ.LJLJ...
-
-```)
-
 (def convert {"|" [:u :d]
       "-" [:l :r]
       "L" [:u :r]
@@ -27,9 +13,9 @@ L--J.L7...LJS7F-7L7.
   ~{:tile (/ (<- (set "|-LJ7F.S")) ,convert)
     :main (some (+ (group (some :tile)) 1)) })
 
-(def grid (peg/match grammar test-input))
+(def grid (peg/match grammar input))
 
-(var [x y] (peg/match ~(some (+ (* (column) (line) "S") 1)) test-input))
+(var [x y] (peg/match ~(some (+ (* (column) (line) "S") 1)) input))
 (-= x 1)
 (-= y 1)
 
@@ -75,26 +61,38 @@ L--J.L7...LJS7F-7L7.
 # Part 1
 (pp (/ steps 2))
 
+# Part 2
+(defn
+  vertical?
+  [pipe]
+  (and (has-value? pipe :u) (has-value? pipe :d)))
+
+(defn
+  horizontal?
+  [pipe]
+  (and (has-value? pipe :r) (has-value? pipe :l)))
+
+(defn
+  flow
+  [pipe]
+  (find |(or (= $ :d) (= $ :u)) pipe))
+
 (var f false)
-(var p1 0)
+(var fl nil)
 (var a 0)
-(var c 0)
 (loop [[j row] :pairs area]
   (set f false)
-  (set p1 0)
-  (set a 0)
-  (pp row)
-  (loop [[i p0] :pairs row]
-  (when
-    (and (= p1 0) (= p0 1))
-    (when f 
-      # (pp @[j i a])
-      (+= c a))
-    (set f (not f)))
-  (when
-    (and (= p0 0) f)
-    # (pp @["a" j i])
-    (+= a 1))
-  (set p1 p0)))
+  (set fl nil)
+  (loop [[i l] :pairs row]
+    (when (= l 1)
+      (if fl
+        (when (not (horizontal? ((grid j) i)))
+          (when (not= fl (flow ((grid j) i)))
+            (set f (not f)))
+          (set fl nil))
+        (if (vertical? ((grid j) i))
+          (set f (not f))
+          (set fl (flow ((grid j) i))))))
+    (when (and f (= l 0)) (+= a 1))))
 
-(pp c)
+(pp a)

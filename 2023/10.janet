@@ -84,15 +84,16 @@
   (set f false)
   (set fl nil)
   (loop [[i l] :pairs row]
+    (def pipe ((grid j) i))
     (when (= l 1)
       (if fl
-        (when (not (horizontal? ((grid j) i)))
-          (when (not= fl (flow ((grid j) i)))
+        (when (not (horizontal? pipe))
+          (when (not= fl (flow pipe))
             (set f (not f)))
           (set fl nil))
-        (if (vertical? ((grid j) i))
+        (if (vertical? pipe)
           (set f (not f))
-          (set fl (flow ((grid j) i))))))
+          (set fl (flow pipe)))))
     (when (and f (= l 0)) (+= a 1))))
 
 (pp a)

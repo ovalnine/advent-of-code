@@ -1,16 +1,5 @@
 (def input (slurp "inputs/12.txt"))
 
-(def test-input ```
-???.### 1,1,3
-.??..??...?##. 1,1,3
-?#?#?#?#?#?#?#? 1,3,1,6
-????.#...#... 4,1,1
-????.######..#####. 1,6,5
-?###???????? 3,2,1
-
-```)
-
-
 (def grammar
   ~{:damaged (group (some (* (number :d+) 1)))
     :springs (/ (<- (to " ")) ,|(map string/from-bytes (string/bytes $)))

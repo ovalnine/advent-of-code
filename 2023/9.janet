@@ -33,5 +33,3 @@
 
 # Part 2
 (pp (sum (map back-prediction history)))
-
-

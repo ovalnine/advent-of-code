@@ -44,4 +44,3 @@
 (def [lo hi] (quadratic-solver a b (- c)))
 
 (pp (math/ceil (- hi lo)))
-

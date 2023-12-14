@@ -1,17 +1,17 @@
 (def input (slurp "inputs/10.txt"))
 
 (def convert {"|" [:u :d]
-      "-" [:l :r]
-      "L" [:u :r]
-      "J" [:u :l]
-      "7" [:d :l]
-      "F" [:d :r]
-      "." []
-      "S" @[]})
+              "-" [:l :r]
+              "L" [:u :r]
+              "J" [:u :l]
+              "7" [:d :l]
+              "F" [:d :r]
+              "." []
+              "S" @[]})
 
 (def grammar
   ~{:tile (/ (<- (set "|-LJ7F.S")) ,convert)
-    :main (some (+ (group (some :tile)) 1)) })
+    :main (some (+ (group (some :tile)) 1))})
 
 (def grid (peg/match grammar input))
 

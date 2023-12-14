@@ -34,7 +34,7 @@
 (defn
   adjacent-numbers
   [[_ row col _]]
-  (filter 
+  (filter
     (fn
       [[_ r cu v cd]]
       (and
@@ -54,4 +54,3 @@
   (+= s (if (= (length nn) 2) (* ;(map |($ 3) nn)) 0)))
 
 (pp s)
-

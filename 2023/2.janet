@@ -16,7 +16,7 @@
     :main :game})
 
 (defn check-constraint [c v]
-  (and 
+  (and
     (<= (v :r) (c :r))
     (<= (v :g) (c :g))
     (<= (v :b) (c :b))))

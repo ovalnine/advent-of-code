@@ -14,7 +14,7 @@
   (var key start)
   (var node (network key))
   (var c 0)
-  (while (not (condition key)) 
+  (while (not (condition key))
     (loop [path :in paths
            :until (condition key)]
       (+= c 1)
@@ -35,4 +35,4 @@
 
 (pp (->> (filter |(= (last $) 65) (keys network))
          (map |(distance $ (fn [x] (= (last x) 90))))
-         (reduce math/lcm 1 )))
+         (reduce math/lcm 1)))

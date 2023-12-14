@@ -14,8 +14,8 @@
     :9 (/ (if "nine" 1) 9)
     :digits (/ (<- :d) ,scan-number)
     :words (+ :1 :2 :3 :4 :5 :6 :7 :8 :9)
-    :part-1 (+ :digits 1) 
-    :part-2 (+ :digits :words 1) 
+    :part-1 (+ :digits 1)
+    :part-2 (+ :digits :words 1)
     :main (some :part-2)})
 
 (var s 0)

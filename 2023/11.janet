@@ -9,7 +9,7 @@
   (loop [[i u] :pairs row]
     (when (not= u ".") (set cols (filter |(not= $ i) cols)))))
 
-(def galaxies (peg/match ~(some (+ (group (* (column) (line)"#")) 1)) input))
+(def galaxies (peg/match ~(some (+ (group (* (column) (line) "#")) 1)) input))
 
 # Part 1
 (def expand (- 2 1))

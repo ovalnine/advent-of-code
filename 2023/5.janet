@@ -9,8 +9,7 @@
     :seeds-1 (* "seeds: " (group (some (/ (* (number :d+) (constant 1) :s*) ,|{:start $0 :length $1}))))
     # Part 2
     :seeds-2 (* "seeds: " (group (some (/ (* (number :d+) :s+ (number :d+) :s*) ,|{:start $0 :length $1}))))
-    :main (/ (* :seeds-1 :maps) ,|{:seeds $0 :maps $&})
-    })
+    :main (/ (* :seeds-1 :maps) ,|{:seeds $0 :maps $&})})
 
 
 (def {:seeds seeds :maps maps} ((peg/match grammar input) 0))

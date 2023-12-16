@@ -1,33 +1,12 @@
 (def input (slurp "inputs/14.txt"))
 
-(def test-input ```
-O....#....
-O.OO#....#
-.....##...
-OO.#O....O
-.O.....O#.
-O.#..O.#.#
-..O..#O..O
-.......O..
-#....###..
-#OO..#....
-
-```)
-
 (def dish (peg/match ~(some (group (* (some (<- (if-not "\n" 1))) "\n"))) input))
 
 (defn matrix/transpose [rows] (map |(identity $&) ;rows))
 
 (defn
-  memo-tilt
-  []
-  (def memo @{})
-  (fn
-    [row r]
-    (def k [row r])
-    (when-let [result (in memo k)]
-      (break result))
-
+  tilt
+  [row r]
     (def result @[])
     (def balls @[])
     (def row (if r (reverse row) row))
@@ -38,13 +17,8 @@ O.#..O.#.#
       (if (= a "O")
         (array/push balls "O")
         (array/push result a)))
-    (set (memo k) (reverse (array/push result ;balls)))))
-
-(def tilt (memo-tilt))
-
-(var tilted-dish (->> (matrix/transpose dish)
-               (map |(tilt $ true))
-               (matrix/transpose)))
+    (def result (array/push result ;balls))
+    (if r (reverse result) result))
 
 (defn
   load
@@ -54,19 +28,17 @@ O.#..O.#.#
        (map (fn [[i row]] (* (- l i) (count |(= $ "O") row))))
        (sum)))
 
+(var tilted-dish (->> (matrix/transpose dish)
+               (map |(tilt $ true))
+               (matrix/transpose)))
+
 (pp (load tilted-dish))
 
 # Part 2
-
 (defn
-  memo-cycle
-  []
-  (def memo @{})
-  (fn
+  cycle
   [dish]
-  (when-let [x (in memo dish)]
-    (break x))
-  (set (memo dish) (->>
+  (->>
     (matrix/transpose dish)
     (map |(tilt $ true))
     (matrix/transpose)
@@ -74,11 +46,22 @@ O.#..O.#.#
     (matrix/transpose)
     (map |(tilt $ false))
     (matrix/transpose)
-    (map |(tilt $ false))))))
+    (map |(tilt $ false))))
 
-(def cycle (memo-cycle))
 
 (var cycled-dish dish)
-(loop [i :range [0 10000]]
+(def memo @{})
+(def loads @[])
+(var offset 0)
+(var c 0)
+(forever
   (set cycled-dish (cycle cycled-dish))
-  (pp (load cycled-dish)))
+  (array/push loads (load cycled-dish))
+  (def k (tuple ;(flatten cycled-dish)))
+  (when-let [x (in memo k)]
+    (set offset (dec x))
+    (break))
+  (set (memo k) (++ c)))
+
+(def wave (% (- 1000000000 offset) (- c offset)))
+(pp (loads (dec (+ offset wave))))

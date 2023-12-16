@@ -2,13 +2,6 @@
 (def input (string/trimr input))
 (def input (string/split "," input))
 
-(def test-input ```
-rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7
-
-```)
-(def test-input (string/trimr test-input))
-(def test-input (string/split "," test-input))
-
 (defn
   byte-hash
   [x]

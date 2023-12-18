@@ -1,51 +1,62 @@
 (def input (slurp "inputs/17.txt"))
 
-(def test-input ```
-2413432311323
-3215453535623
-3255245654254
-3446585845452
-4546657867536
-1438598798454
-4457876987766
-3637877979653
-4654967986887
-4564679986453
-1224686865563
-2546548887735
-4322674655533
+(def blocks (peg/match ~(some (+ (group (some (number :d))) 1)) input))
 
-```)
+(defn heapq/bsearch-index [q e]
+  (var left 0)
+  (var right (length q))
 
-(def blocks (peg/match ~(some (+ (group (some (number :d))) 1)) test-input))
+  (while (< left right)
+    (var middle (math/floor (/ (+ left right) 2)))
+    (if (< ((q middle) :p)  (e :p))
+      (set left (inc middle))
+      (set right middle)))
+  left)
+
+# :p stands for priority
+(defn heapq/push [q e] 
+  (if-let [i (heapq/bsearch-index q e)]
+    (array/insert q i e)
+    (array/push q e)))
+
+(defn heapq/pop [q]
+  (def result (first q))
+  (array/remove q 0)
+  result)
 
 (def cols (length (blocks 0)))
 (def rows (length blocks))
-(def end @{:x (dec cols) :y (dec rows)})
+(def ex (dec cols))
+(def ey (dec rows))
 
-(defn path [{:x x :y y} visited {:x cx :y cy} memo]
-  (def heat-loss (get (get blocks y) x))
-  (unless heat-loss
-    (break math/inf))
-  (when (has-key? visited [x y])
-    (break math/inf))
-  (when (or (> cx 3) (> cy 3) (< cx -3) (< cy -3))
-    (break math/inf))
-  (when (and (= x (end :x)) (= y (end :y)))
-    (break heat-loss))
+(def minl 4)
+(def maxl 11)
+(var queue @[{:x 0 :y 0 :i 1 :j 0 :p 0} {:x 0 :y 0 :i 0 :j 1 :p 0}])
+(var memo @{})
 
-  (when-let [min-heat-loss (get memo [x y cx cy])]
-    (break (+ heat-loss min-heat-loss)))
+(forever
+  (prompt :loop
+    (def {:x x :y y :i i :j j :p heat} (heapq/pop queue))
 
-  (def visited (merge visited {[x y] true}))
-  (def min-heat-loss
-    (min (path {:x (inc x) :y y} visited {:x (if (pos? cx) (inc cx) 1) :y 0} memo)
-         (path {:x (dec x) :y y} visited {:x (if (neg? cx) (dec cx) -1) :y 0} memo)
-         (path {:x x :y (inc y)} visited {:x 0 :y (if (pos? cy) (inc cy) 1)} memo)
-         (path {:x x :y (dec y)} visited {:x 0 :y (if (neg? cy) (dec cy) -1)} memo)))
-  (set (memo [x y cx cy]) min-heat-loss)
-  (+ heat-loss min-heat-loss))
+    (when (and (= x ex) (= y ey))
+      (pp heat)
+      (break :loop))
+    (when (get memo [x y i j]) (return :loop))
+    (set (memo [x y i j]) heat)
 
-(def start @{:x 0 :y 0})
-(def memo @{})
-(pp (path start @{} @{:x 0 :y 0} memo))
+    (loop [k :range [minl maxl]]
+      (match [i j]
+        [1 0]
+        (do
+          (when (get (get blocks (+ y k)) x)
+            (heapq/push queue {:x x :y (+ y k) :i 0 :j 1 :p (+ heat ;(map |((blocks (+ y $)) x) (range 1 (inc k))))}))
+          (when (get (get blocks (- y k)) x)
+            (heapq/push queue {:x x :y (- y k) :i 0 :j 1 :p (+ heat ;(map |((blocks (- y $)) x) (range 1 (inc k))))})))
+        [0 1]
+        (do
+          (when (get (get blocks y) (+ x k))
+            (heapq/push queue {:x (+ x k) :y y :i 1 :j 0 :p (+ heat ;(map |((blocks y) (+ x $)) (range 1 (inc k))))}))
+          (when (get (get blocks y) (- x k))
+            (heapq/push queue {:x (- x k) :y y :i 1 :j 0 :p (+ heat ;(map |((blocks y) (- x $)) (range 1 (inc k))))})))))
+
+    (return :loop)))

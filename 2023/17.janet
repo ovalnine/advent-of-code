@@ -2,6 +2,7 @@
 
 (def blocks (peg/match ~(some (+ (group (some (number :d))) 1)) input))
 
+# Naive priority-queue
 (defn heapq/bsearch-index [q e]
   (var left 0)
   (var right (length q))
@@ -29,11 +30,16 @@
 (def ex (dec cols))
 (def ey (dec rows))
 
+# Part 1
+(def minl 1)
+(def maxl 4)
+# Part 2
 (def minl 4)
 (def maxl 11)
 (var queue @[{:x 0 :y 0 :i 1 :j 0 :p 0} {:x 0 :y 0 :i 0 :j 1 :p 0}])
 (var memo @{})
 
+# Dijkstra's algorithm + adding all consecutive/straight-line nodes to the queue
 (forever
   (prompt :loop
     (def {:x x :y y :i i :j j :p heat} (heapq/pop queue))

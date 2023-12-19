@@ -29,9 +29,12 @@
   (def a (array/slice coords 0 (length coords)))
   (def b @[;(array/slice coords 1 (length coords)) (coords 0)])
   
+  # Perimeter
   (def p (reduce (fn [acc curr] (+ acc (curr 1))) 0 plan))
-  (def s (map |(- (* ($0 :x) ($1 :y)) (* ($0 :y) ($1 :x))) a b))
-  (+ (/ (+ (sum s) p) 2) 1))
+  # Shoelace formula which gets 2 * number of integer points inside the polygon
+  (def i (map |(- (* ($0 :x) ($1 :y)) (* ($0 :y) ($1 :x))) a b))
+  # Pick's theorem
+  (+ (/ (+ (sum i) p) 2) 1))
 
 (def grammar-1 ~(* (<- (set "ULDR")) 1 (number :d+)))
 (def plan (map |(peg/match grammar-1 $) input))

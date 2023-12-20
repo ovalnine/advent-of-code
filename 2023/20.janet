@@ -1,23 +1,5 @@
 (def input (slurp "inputs/20.txt"))
 
-(def test-input ```
-broadcaster -> a, b, c
-%a -> b
-%b -> c
-%c -> inv
-&inv -> a
-
-```)
-
-(def test-input-2 ```
-broadcaster -> a
-%a -> inv, con
-&inv -> b
-%b -> con
-&con -> output
-
-```)
-
 (def grammar
   ~{:output (* (<- :a+) (any ", "))
     :module (group (+ (<- (* (constant "b") "broadcaster")) (* (<- (+ "%" "&")) (<- :a+))))
@@ -31,33 +13,49 @@ broadcaster -> a
   sig)
 
 (def states
-  (table ;(catseq [[name value] :in (filter |(= "&" (first (last $))) (pairs modules))]
-                  [name (table ;(flatten (map |[(first $) false] (filter |(find (fn [x] (= x name)) (last (last $))) (pairs modules)))))])))
+  (merge
+    ;(catseq
+       [[mname [mtype mout]] :pairs modules]
+       {mname (->> (pairs modules)
+                   (filter (fn [[_ [_ out]]] (find |(= $ mname) out)))
+                   (map (fn [[name _]] [name false]))
+                   (flatten)
+                   (splice)
+                   (table))})))
 
+# Hardcoded modules for my input (change to inputs of "rx")
+(def memo @{"ch" false "gh" false "sv" false "th" false})
+(var c 0)
 (var low 0)
 (var high 0)
-(loop [i :range [0 100]]
+(forever
+  (when (= c 1000) (pp (* low high)))
+  (++ c)
+  (when (all truthy? memo) (break))
   (def queue @[["broadcaster" false "button"]])
   (while (> (length queue) 0)
     (prompt :ret
       (def [sigkey sigvalue sigsrc] (array/unshift queue))
       (if sigvalue (++ high) (++ low))
       (unless (has-key? modules sigkey)
-        (pp sigvalue)
         (return :ret))
       (def [mtype mout] (modules sigkey))
       (match mtype 
         "b" (array/push queue ;(map |[$ sigvalue sigkey] mout))
         "%"
         (do
-          (def state (not (or (get states sigkey) false)))
+          (def state (states sigkey))
+          (def sig (not (state sigsrc)))
           (unless sigvalue
-            (set (states sigkey) state)
-            (array/push queue ;(map |[$ state sigkey] mout))))
+            (set (state sigsrc) sig)
+            (array/push queue ;(map |[$ sig sigkey] mout))))
         "&"
         (do
-          (def state (or (get states sigkey) @{}))
+          (def state (states sigkey))
           (set (state sigsrc) sigvalue)
-          (array/push queue ;(map |[$ (not (all truthy? (values state))) sigkey] mout)))))))
+          (def sigout (all truthy? (values state)))
+          (array/push queue ;(map |[$ (not sigout) sigkey] mout))
+          (when (and (has-key? memo sigkey) (not sigout))
+            (unless (memo sigkey) (set (memo sigkey) c))))))))
 
-(pp (* low high))
+(pp (* ;(values memo)))

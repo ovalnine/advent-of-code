@@ -13,15 +13,11 @@
   sig)
 
 (def states
-  (merge
-    ;(catseq
-       [[mname [mtype mout]] :pairs modules]
-       {mname (->> (pairs modules)
-                   (filter (fn [[_ [_ out]]] (find |(= $ mname) out)))
-                   (map (fn [[name _]] [name false]))
-                   (flatten)
-                   (splice)
-                   (table))})))
+  (tabseq
+    [[mname [mtype mout]] :pairs modules]
+    mname (tabseq
+            [[name _] :in (filter (fn [[_ [_ out]]] (find |(= $ mname) out)) (pairs modules))]
+            name false)))
 
 # Hardcoded modules for my input (change to inputs of "rx")
 (def memo @{"ch" false "gh" false "sv" false "th" false})

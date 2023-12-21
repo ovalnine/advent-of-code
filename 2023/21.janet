@@ -75,9 +75,22 @@
 (pp (solve garden start 64))
 
 # Part 2
+# The map has 2 special properties
+# - Starts at the center
+# - Grows in a diamond-shape
+# This means that the growth is quadratic as the area of the squared-diamond grows
+# The requested number of steps is a multiple of 131(length of a side of the map)
+# plus an offset of 65(distance from the center/start of the map to one of the sides)
+# If we can interpolate out the curve by f(65 + x * 131) in x=[0,1,2]
+# then we can find f(...) where x = 202300
+
+(defn lagrange-interpolation "Lagrange Interpolation for x [0 1 2]" [a b c]
+  [(+ (/ a 2) (- b) (/ c 2))
+   (+ (* -3 (/ a 2)) (* 2 b) (- (/ c 2)))
+   a])
+
 (def center (start :x))
-(pp "Use these parameters to interpolate with wolfram at {0,P0 1,P1 2,P2} and solve for x=202300")
-(pp "(The value 202300 comes from 26501365 = 65 + 202300 * 131)")
-(pp ["P0" (solve garden start (+ center (* 0 (length garden))))
-     "P1" (solve garden start (+ center (* 1 (length garden))))
-     "P2" (solve garden start (+ center (* 2 (length garden))))])
+(def x (/ (- 26501365 center) 131))
+(def param (map |(solve garden start (+ center (* $ (length garden)))) (range 0 3)))
+(def [a b c] (lagrange-interpolation ;param))
+(pp (+ (* a x x) (* b x) c))

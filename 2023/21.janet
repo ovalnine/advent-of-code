@@ -1,20 +1,5 @@
 (def input (slurp "inputs/21.txt"))
 
-(def test-input ```
-...........
-.....###.#.
-.###.##..#.
-..#.#...#..
-....#.#....
-.##..S####.
-.##..#...#.
-.......##..
-.##.#.####.
-.##..##.##.
-...........
-
-```)
-
 (def garden (peg/match ~(some (* (group (some (<- (set ".#S")))) "\n")) input))
 
 (defn array/unshift [arr]

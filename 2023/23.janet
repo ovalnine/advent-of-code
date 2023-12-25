@@ -1,32 +1,5 @@
 (def input (slurp "inputs/23.txt"))
 
-(def test-input ```
-#.#####################
-#.......#########...###
-#######.#########.#.###
-###.....#.>.>.###.#.###
-###v#####.#v#.###.#.###
-###.>...#.#.#.....#...#
-###v###.#.#.#########.#
-###...#.#.#.......#...#
-#####.#.#.#######.#.###
-#.....#.#.#.......#...#
-#.#####.#.#.#########v#
-#.#...#...#...###...>.#
-#.#.#v#######v###.###v#
-#...#.>.#...>.>.#.###.#
-#####v#.#.###v#.#.###.#
-#.....#...#...#.#.#...#
-#.#########.###.#.#.###
-#...###...#...#...#.###
-###.###.#.###v#####v###
-#...#...#.#.>.>.#.>.###
-#.###.###.#.###.#.#v###
-#.....###...###...#...#
-#####################.#
-
-```)
-
 (def trails (peg/match ~(some (group (* (some (<- (set "#.><^v"))) 1))) input))
 (def trails2 (peg/match ~(some (group (* (some (/ (<- (set "#.><^v")) ,|(if (= $ "#") "#" "."))) 1))) input))
 
@@ -66,7 +39,7 @@
 
                        (def compress
                          (if intersection?
-                           {:pos {:x (pos :x) :y (pos :y) :i ($ :i) :j ($ :j)} :count 1}
+                           {:pos {:x (pos :x) :y (pos :y) :i ($ :i) :j ($ :j)} :count 0}
                            {:pos (compress :pos) :count (inc (compress :count))}))
 
                        (def memoed (get memo (compress :pos)))
@@ -74,7 +47,7 @@
                          (do
                            (def c (hike trails (memoed :pos) end visited {:pos (compress :pos) :count (memoed :count)} memo))
                            (when c 
-                             (dec (+ (memoed :count) c))))
+                             (+ (memoed :count) c)))
                          (hike trails $ end visited compress memo))))
                   (map paths))
               (filter truthy?)

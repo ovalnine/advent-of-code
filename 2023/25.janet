@@ -1,26 +1,8 @@
-(math/seedrandom (os/cryptorand 8))
 (def input (slurp "inputs/25.txt"))
-
-(def test-input ```
-jqt: rhn xhk nvd
-rsh: frs pzl lsr
-xhk: hfx
-cmg: qnr nvd lhk bvb
-rhn: xhk bvb hfx
-bvb: xhk hfx
-pzl: lsr hfx nvd
-qnr: nvd
-ntq: jqt hfx bvb xhk
-nvd: lhk
-lsr: lhk
-rzs: qnr cmg lsr rsh
-frs: qnr lhk lsr
-
-```)
 
 (def grammar ~(some (group (* (<- :a+) ": " (some (* (<- :a+) (any " "))) "\n"))))
 
-(def machine (peg/match grammar test-input))
+(def machine (peg/match grammar input))
 
 (def mach (distinct (flatten machine)))
 
@@ -36,30 +18,39 @@ frs: qnr lhk lsr
                           (array/push result nk)))
                       result)))
 
-(def mach (tabseq [[k vs] :pairs mach]
-                     {k 1} (seq [v :in vs] {v 1})))
 
-(while (> (length mach) 2)
-  (def mach-keys (keys mach))
-  (def rand-key (mach-keys (math/rng-int (math/rng (os/time)) (length mach-keys))))
-  (def rand-values (mach rand-key))
-  (def rand-index (math/rng-int (math/rng (os/time)) (length rand-values)))
-  (def rand-value (rand-values rand-index))
-  (def rand-rest (array/remove rand-values rand-index))
-  
-  (def new-key (table/to-struct (merge rand-key rand-value)))
-  (def new-values (mach rand-value))
-  (def new-values (array/remove new-values (find-index |(= $ rand-key) new-values)))
-  (put mach new-key (distinct @[;rand-rest ;new-values]))
-  (put mach rand-key nil)
-  (put mach rand-value nil)
-  
-  (loop [k :in (mach new-key)]
-    (def v (mach k))
-    (when-let [a (find-index |(= $ rand-key) v)]
-      (array/remove v a))
-    (when-let [b (find-index |(= $ rand-value) v)]
-      (array/remove v b))
-    (array/push v new-key)))
+(forever 
+  (def temp (tabseq [[k vs] :pairs mach]
+                    {k 1} (seq [v :in vs] {v 1})))
 
-(each p (pairs mach) (pp p))
+  (while (> (length temp) 2)
+    (def mach-keys (keys temp))
+    (def rand-key (mach-keys (math/rng-int (math/rng (os/time)) (length mach-keys))))
+    (def rand-values (temp rand-key))
+    (def rand-index (math/rng-int (math/rng (os/time)) (length rand-values)))
+    (def rand-value (rand-values rand-index))
+    
+    (def new-key (table/to-struct (merge rand-key rand-value)))
+    (def new-values (temp rand-value))
+    (def new-values @[;rand-values ;new-values])
+    (forever
+      (if-let [i (find-index |(or (= $ rand-key) (= $ rand-value)) new-values)]
+        (array/remove new-values i)
+        (break)))
+  
+    (put temp new-key new-values)
+    (put temp rand-key nil)
+    (put temp rand-value nil)
+    
+    (loop [k :in (temp new-key)]
+      (def v (temp k))
+      (when-let [a (find-index |(= $ rand-key) v)]
+        (array/remove v a)
+        (array/push v new-key))
+      (when-let [b (find-index |(= $ rand-value) v)]
+        (array/remove v b)
+        (array/push v new-key))))
+  (def [ak av] (first (pairs temp)))
+  (when (= (length av) 3)
+    (pp (* (length (keys ak)) (length (keys (first av)))))
+    (break)))

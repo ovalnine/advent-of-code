@@ -45,8 +45,7 @@
                (not ($ :past)))
             inters))
 
-# Part 2 - Not my solution, but this problem is quite hard to solve without external libraries which are missing in Janet. So this is a translation from the python solution below
-# https://topaz.github.io/paste/#XQAAAQAiAwAAAAAAAAAyGEruliPhOB7yEkDWpQGEhIKTgPt1VhI3lpjTdpJW+YZBOCt8Cg9+mD/1RcO1pETBAV3UPQvf9lTSSyLhWAIrcVAe74HQwGTELmgeQk/VwN+z6sL+7g/+siZXui+gFb3sOpG+jUPfvJf4BPLRqVREogM0jh5T/VdKNqq4DZpvrpRsC8HZh4MyHHnYQIHlNTl1jb7qEPvd/LA4UYwIkXWyi6s+vR1az/6Q8Qa283cF9Bf1EAHya2lfONQPr5hzT67G7c56dkd/GtqtpWMh6zgdgm+iq7xcilf63bQ0Rfd4KiHC2tY9yvDdq2tdKb9beOQOT12vDa+aAH9RBjsrhAlHBO8HW0FjdEHv9IQ1U/bjWys3ZqRj65fYZlow/0VKdzzvvVmTDNExDsH8SHX/6igy/0W9ZFzLmaxJBZeVZq3SNE1WmEsIT62B8dUksvNso+xjAr4F0GUgYk0kjT//pteowA==
+# Part 2
 
 (defn cols [a b c d data]
   (def A (map (fn [r] [(r c) (- (r d)) (r a) (r b)]) data))

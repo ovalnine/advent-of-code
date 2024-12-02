@@ -35,23 +35,18 @@ local test = [[
 
 local test_match = lpeg.match(pattern, test)
 
--- Part 1
 
-local sum = 0
-for _,row in ipairs(match) do
+local function safety(row)
   local sorting = ""
 
   for i,v in ipairs(row) do
     local nv = row[i + 1]
-    -- print(v, nv, sorting, inspect(row))
     if nv == nil then
-      print(inspect(row))
-      sum = sum + 1
-      goto continue
+      return 1
     end
 
     if v == nv then
-      goto continue
+      return 0
     end
 
     if i == 1 then
@@ -64,26 +59,60 @@ for _,row in ipairs(match) do
 
     if v < nv then
       if sorting ~= "asc" then
-        goto continue
+        return 0
       else
         local dist = nv - v
         if dist < 1 or dist > 3 then
-          goto continue
+          return 0
         end
       end
     else
       if sorting ~= "desc" then
-        goto continue
+        return 0
       else
         local dist = v - nv
         if dist < 1 or dist > 3 then
-          goto continue
+          return 0
         end
       end
     end
 
   end
-    ::continue::
+end
+
+local function remove_index(t, i)
+  local c = {}
+  for k,v in ipairs(t) do
+    if k ~= i then
+      table.insert(c, v)
+    end
+  end
+  return c
+end
+
+local sum = 0
+local dampened_sum = 0
+for _,row in ipairs(match) do
+  local safe = safety(row)
+
+  if safe == 1 then
+    -- Part 1
+    sum = sum + 1
+  else
+    -- Part 2
+    for i = 1, #row do
+      local row_copy = remove_index(row, i)
+      local safe_copy = safety(row_copy)
+
+      if safe_copy == 1 then
+        dampened_sum = dampened_sum + 1
+        goto nextrow
+      end
+    end
+
+    ::nextrow::
+  end
 end
 
 print(sum)
+print(sum + dampened_sum)

@@ -69,25 +69,32 @@ for _,r in ipairs(rules) do
   rule_set[x][y] = true
 end
 
-local sum = 0
+local function page_sort(a, b)
+  return rule_set[a] and rule_set[a][b]
+end
+
+local function middle_value(t)
+  return t[math.floor(#t / 2) + 1]
+end
+
+local sum1 = 0
+local sum2 = 0
 for ux,update in ipairs(updates) do
   for i,page in ipairs(update) do
     for j = (i + 1), #update do
       local next_page = update[j]
       local invalid = rule_set[next_page] and rule_set[next_page][page]
       if invalid then
+        table.sort(update, page_sort)
+        sum2 = sum2 + middle_value(update)
         goto nextupdate
       end
     end
   end
-  local index_middle = math.floor(#update / 2) + 1
-  local middle = update[index_middle]
-  sum = sum + middle
+  sum1 = sum1 + middle_value(update)
 
   ::nextupdate::
 end
 
-print(inspect(rules))
-print(inspect(updates))
-print(inspect(rule_set))
-print(sum)
+print(sum1)
+print(sum2)

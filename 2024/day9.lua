@@ -16,10 +16,98 @@ local test = [[
 
 lpeg.locale(lpeg)
 local number = lpeg.digit / tonumber
-
 local numbers = lpeg.Ct(number^1)
-
 local match = lpeg.match(numbers, content)
+
+local disk = {}
+for index, value in ipairs(match) do
+  local id =  (index - 1) / 2
+  local map = index % 2 == 1 and { value, id } or value
+  table.insert(disk, map)
+end
+
+-- print(inspect(disk))
+
+local function first_from(a, i, t)
+  for j = i, #a do
+    if type(a[j]) == t then
+      return j
+    end
+  end
+
+  return -1
+end
+
+local function last_from(a, i, t)
+  for j = i, 0, -1 do
+    if type(a[j]) == "table" then
+      return j
+    end
+  end
+
+  return -1
+end
+
+local visited = {}
+local i = first_from(disk, 1, "number")
+local j = last_from(disk, #disk, "table")
+while true do
+  local ii = disk[i]
+  local jj = disk[j]
+
+  if i >= j then
+      i = first_from(disk, 1, "number")
+      j = last_from(disk, j - 1, "table")
+  else
+    if jj[1] > ii then
+      i = first_from(disk, i + 1, "number")
+
+      if i == -1 then
+        visited[jj[2]] = true
+        i = first_from(disk, 1, "number")
+        j = last_from(disk, j - 1, "table")
+      end
+    else
+      if visited[jj[2]] then
+        i = first_from(disk, 1, "number")
+        j = last_from(disk, j - 1, "table")
+      else
+        visited[jj[2]] = true
+        disk[i] = disk[i] - jj[1]
+        table.insert(disk, j, jj[1])
+        local temp = table.remove(disk, j + 1)
+        table.insert(disk, i, temp)
+        i = first_from(disk, 1, "number")
+        j = last_from(disk, #disk, "table")
+      end
+    end
+  end
+
+  if j == -1 then
+    break
+  end
+end
+
+-- print(inspect(disk))
+
+local sum = 0
+local gp2 = 0
+for index, value in ipairs(disk) do
+  if type(value) == "table" then
+    for k = 1, value[1] do
+      sum = sum + gp2 * value[2]
+      gp2 = gp2 + 1
+    end
+  end
+
+  if type(value) == "number" then
+    for k = 1, value do
+      gp2 = gp2 + 1
+    end
+  end
+end
+
+print(sum)
 
 local function sum(t)
   local s = 0
@@ -97,8 +185,8 @@ local function checksum(t)
   return s
 end
 
-local pc = prechecksum(match)
-pc = check(pc)
-local sum1 = checksum(pc)
-print(sum1)
+-- local pc = prechecksum(match)
+-- pc = check(pc)
+-- local sum1 = checksum(pc)
+-- print(sum1)
 
